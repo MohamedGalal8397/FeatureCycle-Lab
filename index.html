@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Log — Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapisstyles.css.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!--
+    ┌─────────────────────────────────────────┐
+    │  STYLES                                  │
+    │  css/styles.css — كل الـ CSS             │
+    └─────────────────────────────────────────┘
+  -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <header class="editor-header">
+    <div class="header-left">
+      <span class="logo-mark">◈</span>
+      <span class="logo-text">WORK<span class="accent">LOG</span></span>
+    </div>
+    <div class="header-right">
+
+      <button class="btn-save-project" id="btnSaveProject" onclick="saveForProject()" title="Save current project state">
+        <span class="btn-save-icon">⬡</span>
+        <span class="btn-save-label">SAVE PROJECT</span>
+        <span class="save-status-dot" id="saveStatusDot"></span>
+      </button>
+
+      <button class="btn-view" onclick="openViewer()">
+        <span class="btn-icon">⬡</span> VIEW MODE
+      </button>
+
+      <div class="more-menu-wrapper">
+        <button class="btn-more" id="btnMoreMenu" onclick="toggleMoreMenu(event)" title="More actions">
+          <span class="btn-more-dots">⋯</span> MORE
+        </button>
+        <div class="more-menu-dropdown" id="moreMenu">
+          <div class="more-menu-section-label">ACTIONS</div>
+
+          <button class="more-menu-item" onclick="saveForProject(); document.getElementById('moreMenu').classList.remove('open')">
+            <span class="more-menu-icon">⬡</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title">Save Project</div>
+              <div class="more-menu-item-desc">Download current project JSON</div>
+            </div>
+          </button>
+
+          <button class="more-menu-item" onclick="saveAndStartNewProject(); document.getElementById('moreMenu').classList.remove('open')">
+            <span class="more-menu-icon">✚</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title">New Project</div>
+              <div class="more-menu-item-desc">Save current project and start fresh</div>
+            </div>
+          </button>
+
+          <button class="more-menu-item" onclick="openImportDialog()">
+            <span class="more-menu-icon">↓</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title">Import JSON</div>
+              <div class="more-menu-item-desc">Load a saved project file</div>
+            </div>
+          </button>
+
+          <button class="more-menu-item" id="btnEditMode" onclick="toggleEditMode()">
+            <span class="more-menu-icon">✎</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title"><span id="editModeLabel">Edit Mode: OFF</span></div>
+              <div class="more-menu-item-desc">Toggle editing fields</div>
+            </div>
+          </button>
+
+          <div class="more-menu-divider"></div>
+          <div class="more-menu-section-label">EXPORT</div>
+
+          <button class="more-menu-item" onclick="exportToJSON()">
+            <span class="more-menu-icon">⬡</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title">Export JSON</div>
+              <div class="more-menu-item-desc">Download full project as JSON</div>
+            </div>
+          </button>
+
+          <button class="more-menu-item" onclick="exportToHTML(); document.getElementById('moreMenu').classList.remove('open')">
+            <span class="more-menu-icon">⎙</span>
+            <div class="more-menu-item-text">
+              <div class="more-menu-item-title">Export HTML</div>
+              <div class="more-menu-item-desc">Snapshot full project as HTML</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ══ TOAST ════════════════════════════════════════════ -->
+  <div class="save-toast" id="saveToast">
+    <span class="toast-icon">✓</span>
+    <span class="toast-msg" id="toastMsg">Project saved successfully</span>
+  </div>
+
+  <!-- ══ LANDING SCREEN ═══════════════════════════════════ -->
+  <div class="landing-overlay" id="landingOverlay" style="display: none;">
+    <div class="landing-container">
+      <div class="landing-header">
+        <div class="landing-logo">
+          <span class="landing-logo-mark">◈</span>
+          <span class="landing-logo-text">WORK<span class="accent">LOG</span></span>
+        </div>
+        <h1 class="landing-title">Project Management & Documentation Tool</h1>
+        <p class="landing-subtitle">Organize your API flows, bugs, and workflows. Document everything, stay organized.</p>
+      </div>
+      <div class="landing-actions">
+        <button class="btn-landing" id="btnNewProject" onclick="startNewProject()">
+          <span class="landing-btn-icon">✚</span>
+          <div class="landing-btn-text">
+            <div class="landing-btn-title">New Project</div>
+            <div class="landing-btn-desc">Start with a blank workspace</div>
+          </div>
+        </button>
+        <button class="btn-landing" id="btnImportProject" onclick="openImportDialog()">
+          <span class="landing-btn-icon">↓</span>
+          <div class="landing-btn-text">
+            <div class="landing-btn-title">Import Project</div>
+            <div class="landing-btn-desc">Load a saved JSON file</div>
+          </div>
+        </button>
+        <button class="btn-landing btn-continue" id="btnContinue" style="display:none" onclick="continuePreviousProject()">
+          <span class="landing-btn-icon">↻</span>
+          <div class="landing-btn-text">
+            <div class="landing-btn-title">Continue Previous</div>
+            <div class="landing-btn-desc">Resume your last project</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONFIRMATION MODAL ═══════════════════════════════ -->
+  <div class="modal-overlay" id="confirmationModal" style="display:none">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Confirm Action</h2>
+        <button class="btn-close-modal" onclick="closeConfirmation()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-message" id="modalMessage">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeConfirmation()">CANCEL</button>
+        <button class="btn-modal-confirm" onclick="executeConfirmedAction()">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONTEXT MENU ══════════════════════════════════════ -->
+  <div class="context-menu" id="contextMenu" style="display:none">
+    <button class="context-menu-item" onclick="contextMenuDelete()">
+      <span class="ctx-icon">🗑</span> Delete
+    </button>
+    <button class="context-menu-item" onclick="contextMenuRename()">
+      <span class="ctx-icon">✎</span> Rename
+    </button>
+    <div class="context-menu-divider" id="ctxDivider" style="display:none"></div>
+    <button class="context-menu-item" id="ctxSolve" style="display:none" onclick="contextMenuSolve()">
+      <span class="ctx-icon">✓</span> Mark as Solved
+    </button>
+  </div>
+
+  <!-- ══ BUG DETAIL MODAL ══════════════════════════════════ -->
+  <div class="modal-overlay" id="bugDetailModal" style="display:none">
+    <div class="modal-container modal-container--wide">
+      <div class="modal-header">
+        <h2 class="modal-title" id="bugDetailTitle">Bug Details</h2>
+        <button class="btn-close-modal" onclick="closeBugDetailModal()">✕</button>
+      </div>
+      <div class="modal-body" id="bugDetailBody"></div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeBugDetailModal()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BUG CREATE MODAL ══════════════════════════════════ -->
+  <div class="modal-overlay" id="bugCreateModal" style="display:none">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">CREATE BUG</h2>
+        <button class="btn-close-modal" onclick="closeBugCreateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="field-label">BUG TITLE *</label>
+          <input type="text" id="bugTitle" class="form-input" placeholder="Enter bug title...">
+        </div>
+        <div class="form-group">
+          <label class="field-label">DESCRIPTION *</label>
+          <textarea id="bugDescription" class="form-textarea" placeholder="Describe the bug in detail..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label">SEVERITY</label>
+          <select id="bugSeverity" class="form-select">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <!-- MR toggle button -->
+        <button type="button" class="btn-mr-toggle" id="bugMRToggle" onclick="toggleBugMRSection()">
+          <span style="font-size:11px">+</span> Link a Merge Request <span style="color:var(--text-dim);font-size:10px">(optional)</span>
+        </button>
+
+        <!-- MR collapsible section -->
+        <div id="bugMRSection" style="display:none">
+          <div class="form-divider-inner">MERGE REQUEST DETAILS</div>
+          <div class="form-group">
+            <label class="field-label">REPOSITORY NAME</label>
+            <input type="text" id="bugMRRepo" class="form-input" placeholder="e.g. my-repo">
+          </div>
+          <div class="form-group">
+            <label class="field-label">MERGE REQUEST LINK</label>
+            <input type="text" id="bugMRLink" class="form-input" placeholder="e.g. https://gitlab.com/...">
+          </div>
+          <div class="form-group">
+            <label class="field-label">MR TITLE (optional)</label>
+            <input type="text" id="bugMRTitle" class="form-input" placeholder="e.g. Fix transaction timeout">
+          </div>
+          <div class="form-group">
+            <label class="field-label">STATUS</label>
+            <select id="bugMRStatus" class="form-select">
+              <option value="open" selected>Open</option>
+              <option value="draft">Draft</option>
+              <option value="review">In Review</option>
+              <option value="merged">Merged</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeBugCreateModal()">CANCEL</button>
+        <button class="btn-modal-confirm" onclick="createBugEntry()">CREATE BUG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MERGE REQUEST CREATE MODAL ═══════════════════════ -->
+  <div class="modal-overlay" id="mrCreateModal" style="display:none">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">CREATE MERGE REQUEST</h2>
+        <button class="btn-close-modal" onclick="closeMRCreateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="field-label">REPOSITORY NAME *</label>
+          <input type="text" id="mrRepo" class="form-input" placeholder="e.g. my-repo">
+        </div>
+        <div class="form-group">
+          <label class="field-label">MERGE REQUEST LINK *</label>
+          <input type="text" id="mrLink" class="form-input" placeholder="e.g. https://github.com/...">
+        </div>
+        <div class="form-group">
+          <label class="field-label">TITLE (Optional)</label>
+          <input type="text" id="mrTitle" class="form-input" placeholder="Brief title of the MR">
+        </div>
+        <div class="form-group">
+          <label class="field-label">STATUS</label>
+          <select id="mrStatus" class="form-select">
+            <option value="open" selected>Open</option>
+            <option value="draft">Draft</option>
+            <option value="review">In Review</option>
+            <option value="merged">Merged</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" onclick="closeMRCreateModal()">CANCEL</button>
+        <button class="btn-modal-confirm" onclick="createMREntry()">CREATE MR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RENAME DIALOG ════════════════════════════════════ -->
+  <div class="rename-dialog-overlay" id="renameDialogOverlay" style="display:none">
+    <div class="rename-dialog">
+      <div class="rename-dialog-header">
+        <h2>RENAME</h2>
+        <button class="btn-close-dialog" onclick="closeRenameDialog()">✕</button>
+      </div>
+      <div class="rename-dialog-body">
+        <div class="rename-field-group">
+          <label class="field-label">New Name</label>
+          <input type="text" id="renameInput" class="rename-input" placeholder="Enter new name..."
+                 onkeyup="handleRenameKeyup(event)">
+        </div>
+      </div>
+      <div class="rename-dialog-footer">
+        <button class="btn-cancel" onclick="closeRenameDialog()">CANCEL</button>
+        <button class="btn-rename-confirm" onclick="confirmRename()">RENAME</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ IMPORT JSON DIALOG ═══════════════════════════════ -->
+  <div class="import-dialog-overlay" id="importDialogOverlay" style="display:none">
+    <div class="import-dialog">
+      <div class="import-dialog-header">
+        <h2>IMPORT JSON</h2>
+        <button class="btn-close-dialog" onclick="closeImportDialog()">✕</button>
+      </div>
+      <div class="import-dialog-body">
+        <div class="import-method">
+          <label class="method-title">Choose import method:</label>
+          <div class="method-buttons">
+            <button class="method-btn active" id="methodFileBtn" onclick="switchMethod('file')">
+              <span class="method-icon">📁</span> UPLOAD FILE
+            </button>
+            <button class="method-btn" id="methodPasteBtn" onclick="switchMethod('paste')">
+              <span class="method-icon">📋</span> PASTE JSON
+            </button>
+          </div>
+        </div>
+        <div class="import-content" id="fileContent">
+          <input type="file" id="jsonFileInput" accept=".json" onchange="handleFileSelect(event)" style="display:none">
+          <button class="btn-select-file" onclick="document.getElementById('jsonFileInput').click()">SELECT JSON FILE</button>
+          <div class="file-status" id="fileStatus"></div>
+        </div>
+        <div class="import-content" id="pasteContent" style="display:none">
+          <textarea id="jsonPasteArea" placeholder="Paste your JSON here..." class="json-textarea"></textarea>
+          <div class="json-preview" id="jsonPreview"></div>
+        </div>
+        <div class="import-actions">
+          <button class="btn-cancel" onclick="closeImportDialog()">CANCEL</button>
+          <button class="btn-import" onclick="confirmImport()">IMPORT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MAIN EDITOR AREA ═════════════════════════════════ -->
+  <main class="editor-main">
+
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <span class="sidebar-label">ENTRIES</span>
+        <button class="btn-new-entry" onclick="newEntry()" title="New Entry">＋</button>
+      </div>
+      <ul class="entries-list" id="entriesList"></ul>
+
+      <div class="solved-bugs-sidebar">
+        <div class="solved-bugs-header" onclick="toggleSolvedBugsSidebar()">
+          <span class="solved-bugs-toggle" id="solvedBugsToggle">▸</span>
+          <span class="solved-bugs-label">SOLVED BUGS</span>
+        </div>
+        <ul class="solved-bugs-list" id="solvedBugsList" style="display: none;"></ul>
+      </div>
+    </aside>
+
+    <section class="entry-editor" id="entryEditor">
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◈</div>
+        <p>Select an entry or create a new one</p>
+        <button class="btn-new-entry-big" onclick="newEntry()">＋ New Entry</button>
+      </div>
+
+      <div class="editor-form" id="editorForm" style="display:none">
+
+        <div class="field-group title-group">
+          <label class="field-label">ENTRY TITLE</label>
+          <input type="text" class="field-title" id="entryTitle"
+                 placeholder="e.g. Full cycle on transaction..."
+                 oninput="syncTitle()">
+        </div>
+
+        <div class="editor-layout">
+
+          <div class="editor-main-section">
+            <div class="tabs-bar">
+              <div class="tabs-scroll" id="tabsScroll"></div>
+              <button class="btn-add-tab" onclick="addTab()" title="Add Tab">＋ Add Tab</button>
+            </div>
+            <div class="tab-content" id="tabContent"></div>
+          </div>
+
+          <div class="editor-side-panel">
+
+            <div class="detail-tabs">
+              <button class="detail-tab-btn active" data-tab="bugs" onclick="switchDetailTab('bugs')">
+                <span class="detail-tab-icon">🐛</span>
+                <span class="detail-tab-label">BUGS</span>
+              </button>
+              <button class="detail-tab-btn" data-tab="mergeRequests" onclick="switchDetailTab('mergeRequests')">
+                <span class="detail-tab-icon">⎇</span>
+                <span class="detail-tab-label">MRs</span>
+              </button>
+            </div>
+
+            <div class="detail-panel" id="bugsPanel">
+              <div class="detail-panel-header">
+                <span class="detail-panel-title">BUGS</span>
+                <button class="btn-add-detail" onclick="openBugCreateModal()" title="Add Bug">＋</button>
+              </div>
+              <div class="detail-panel-content" id="bugsPanelContent">
+                <div class="detail-empty">No bugs yet</div>
+              </div>
+            </div>
+
+            <div class="detail-panel" id="mergeRequestsPanel" style="display:none">
+              <div class="detail-panel-header">
+                <span class="detail-panel-title">MERGE REQUESTS</span>
+                <button class="btn-add-detail" onclick="openMRCreateModal()" title="Add MR">＋</button>
+              </div>
+              <div class="detail-panel-content" id="mrPanelContent">
+                <div class="detail-empty">No merge requests yet</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div id="bugSectionContainer"></div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══ VIEWER OVERLAY ═══════════════════════════════════════ -->
+<div class="viewer-overlay" id="viewerOverlay" style="display:none">
+  <div class="viewer-shell">
+    <div class="viewer-toolbar">
+      <span class="viewer-title-bar">◈ WORKLOG — VIEW MODE</span>
+      <div class="viewer-actions">
+        <button class="btn-print" onclick="printPage()">⎙ EXPORT HTML</button>
+        <button class="btn-close-viewer" onclick="closeViewer()">✕ CLOSE</button>
+      </div>
+    </div>
+    <div class="viewer-body" id="viewerBody"></div>
+  </div>
+</div>
+
+<!--
+  ┌──────────────────────────────────────────────────────────┐
+  │  JAVASCRIPT — Load Order مهم جداً                         │
+  │                                                           │
+  │  1. utils.js    → uid, escHtml, showToast, dates          │
+  │  2. state.js    → state object, localStorage, helpers     │
+  │  3. renderer.js → كل دوال الـ render                      │
+  │  4. actions.js  → CRUD على entries/tabs/bugs/MRs          │
+  │  5. modals.js   → كل الـ dialogs والـ overlays            │
+  │  6. viewer.js   → view mode overlay                        │
+  │  7. export.js   → save/export JSON+HTML                   │
+  └──────────────────────────────────────────────────────────┘
+-->
+<script src="js/utils.js"></script>
+<script src="js/state.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/export.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/viewer.js"></script>
+
+<script>
+  // ── INIT ──────────────────────────────
+  // بيشتغل بعد ما كل الـ scripts اتحملت
+  (function init() {
+    renderSidebar();
+    renderEditor();
+    updateSaveButtonState();
+    updateEditModeUI();
+    showLandingScreen();
+    initAutoExpandTextareas();
+  })();
+</script>
+
+</body>
+</html>

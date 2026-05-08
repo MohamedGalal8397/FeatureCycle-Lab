@@ -1,0 +1,31 @@
+{
+  "exportedAt": "2026-04-26T19:39:56.519Z",
+  "appVersion": "1.0",
+  "entries": [
+    {
+      "id": "_b09egitv2",
+      "title": "Transaction Flow ",
+      "createdAt": "24 Apr 2026, 22:54",
+      "tabs": [
+        {
+          "id": "_hwaisaasr",
+          "name": "1 Creating new merchant (onboarding)",
+          "apiEndpoint": "POST http://localhost:8090/api/merchant/onboard",
+          "request": "{\n\"merchantProfile\": {\n  \"name\": \"Nile Market\",\n    \"email\": \"support@nilemarket.com\",\n    \"legalName\": \"Nile Market LLC\",\n    \"commercialName\": \"Nile Market\",\n    \"mcc\": {\n      \"id\": \"1\"\n    },\n    \"country\": {\n      \"id\": \"1\"\n    },\n    \"defaultCurrency\": {\n      \"id\": \"1\"\n    },\n    \"logo\": \"string\",\n    \"feesContractId\": 1\n  },\n  \"commercialConfig\": {\n    \"businessType\": \"MARKETPLACE\",\n    \"contractStart\": \"2025-02-01\",\n    \"contractEnd\": \"2028-02-01\",\n    \"settlementModel\": \"T_PLUS_1\",\n    \"settlementFrequency\": \"DAILY\"\n  },\n  \"financialConfig\": {\n   \"merchant\": {\n      \"id\": \"MID-NILE-2026-0001\",\n      \"name\": \"Nile Market\"\n    },\n    \"bank\": {\n      \"id\": \"1\"\n    },\n    \"iban\": \"EG380019000500000000263180999\",\n    \"accountHolder\": \"Nile Market LLC\",\n    \"bankBranchName\": \"Cairo Downtown Branch\",\n    \"accountNumber\": \"9876543210987654\",\n  \"currency\": {\n    \"id\": \"1\"\n  },\n    \"isSettlementSplit\": true\n  },\n  \"callbackConfigs\": [\n    {\n      \"callbackUrl\": \"http://localhost:9922/orders/callback\",\n      \"signatureKey\": \"nY8fK2pL9xQwV7Z3aBcD1eFgHjK0LmNoPqRsTuVwXyZ=\",\n      \"retryCount\": 3\n    }\n  ],\n  \"acquirerConfigs\": [\n    {\n      \"acquirerBankId\": 1,\n      \"acquirerBankCode\": \"BM\",\n      \"environment\": \"DEVELOPMENT\",\n      \"priority\": 2,\n      \"channel\": \"ECOMMERCE\",\n      \"mid\": \"MID-NILE-2026-0001\",\n      \"transactionType\": \"string\"\n    }\n  ],\n  \"feesContractAssignRequests\": [\n    {\n      \"feesContractId\": 1\n    }\n  ]\n}",
+          "response": "{\n    \"merchantProfile\": {\n        \"id\": 121,\n        \"code\": \"wgi03DoWO5s3LKWjvWaBRw\",\n        \"name\": \"Nile Market\",\n        \"commercialName\": \"Nile Market\",\n        \"legalName\": \"Nile Market LLC\",\n        \"email\": null,\n        \"status\": \"DRAFT\",\n        \"logo\": null,\n        \"defaultCurrency\": {\n            \"id\": \"1\",\n            \"name\": \"EGP\",\n            \"email\": null\n        },\n        \"country\": {\n            \"id\": \"1\",\n            \"name\": null,\n            \"email\": null\n        }\n    },\n    \"commercialConfig\": null,\n    \"financialConfig\": null,\n    \"acquirerConfigs\": null,\n    \"message\": \"Merchant onboarded successfully\"\n}",
+          "dbRow": "system.mr_merchant:\n\n \"code\"\t\"wgi03DoWO5s3LKWjvWaBRw\"\n\"commercial_name\"\t\"Nile Market\"\n\"created\"\t\"2026-04-25T12:05:57.378582\"\n\"created_by\"\t\"System\"\n\"default_currency_id\"\t\"1\"\n\"id\"\t\"121\"\n\"is_active\"\t\"true\"\n\"is_deleted\"\t\"false\"",
+          "note": "security hash key in DB is null, but is solved here in the merge request:\n\nhttps://gitlab.com/blashen/wallet-be/-/merge_requests/160"
+        },
+        {
+          "id": "_gf7a9cf25",
+          "name": "2 Initiating order",
+          "apiEndpoint": "Post {{finaicialModuleBaseUrl}}/api/order/init",
+          "request": "{\n  \"customer_name\": \"Mohamed Galal\",\n  \"customer_code\": \"CUST-001\",\n  \"customer_email\": \"mg301596@gamil.com\"\n}",
+          "response": "{\n    \"orderToken\": \"a95e622491a390c6f3548eabc2c87632b20a473c4ecca80f71c3d0a5d26fd4c8\",\n    \"id\": 479\n}",
+          "dbRow": "system.or_order:\n\n\"id\"\t\"479\"\n\"status\"\t\"IN_PROGRESS\"",
+          "note": "There is a bug where the validation of the unique check of the merchant ref no is not done well"
+        }
+      ]
+    }
+  ]
+}
