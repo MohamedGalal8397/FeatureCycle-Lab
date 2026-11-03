@@ -18,7 +18,7 @@ function renderSidebar() {
     const li = document.createElement('li');
     li.className = 'entry-item' + (entry.id === state.activeEntryId ? ' active' : '');
     li.onclick = () => selectEntry(entry.id);
-    li.oncontextmenu = e => showContextMenu(e, entry.id, null, false);
+    li.oncontextmenu = e => showContextMenu(e, entry.id, null, false, null);
 
     const tabCount = entry.tabs?.length ?? 0;
     li.innerHTML =
@@ -47,7 +47,7 @@ function renderSolvedBugsSidebar() {
     const li = document.createElement('li');
     li.className = 'solved-bug-item' + (bug.id === state.activeEntryId ? ' active' : '');
     li.onclick = () => selectEntry(bug.id);
-    li.oncontextmenu = e => showContextMenu(e, bug.id, null, false);
+    li.oncontextmenu = e => showContextMenu(e, bug.id, null, true, null);
 
     const tabCount = bug.tabs?.length ?? 0;
     li.innerHTML =
@@ -156,7 +156,7 @@ function renderTabsBar() {
     btn.draggable = true;
     btn.dataset.tabId = tab.id;
     btn.onclick = () => selectTab(tab.id);
-    btn.oncontextmenu = e => showContextMenu(e, null, tab.id, false);
+    btn.oncontextmenu = e => showContextMenu(e, null, tab.id, false, null);
     btn.title = tab.name;
     btn.addEventListener('dragstart', handleTabDragStart);
     btn.addEventListener('dragend', handleTabDragEnd);
@@ -322,7 +322,7 @@ function renderBugsPanel() {
       ? '<span class="detail-item-tag tag-mr">⎇ MR</span>' : '';
 
     return `
-      <div class="detail-item" onclick="openBugDetailModal('${bug.id}')" style="cursor:pointer">
+      <div class="detail-item" onclick="openBugDetailModal('${bug.id}')" oncontextmenu="showContextMenu(event, '${entry.id}', null, false, '${bug.id}')" style="cursor:pointer">
         <div class="detail-item-title">🐛 ${escHtml(bug.title)}</div>
         <div class="detail-item-meta">
           <span class="detail-item-tag ${severityClass}">${(bug.severity || 'medium').toUpperCase()}</span>

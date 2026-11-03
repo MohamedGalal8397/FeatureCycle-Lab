@@ -165,8 +165,11 @@
     <button class="context-menu-item" onclick="contextMenuDelete()">
       <span class="ctx-icon">🗑</span> Delete
     </button>
-    <button class="context-menu-item" onclick="contextMenuRename()">
+    <button class="context-menu-item" id="ctxRename" onclick="contextMenuRename()">
       <span class="ctx-icon">✎</span> Rename
+    </button>
+    <button class="context-menu-item" id="ctxEdit" style="display:none" onclick="contextMenuEdit()">
+      <span class="ctx-icon">✎</span> Edit
     </button>
     <div class="context-menu-divider" id="ctxDivider" style="display:none"></div>
     <button class="context-menu-item" id="ctxSolve" style="display:none" onclick="contextMenuSolve()">

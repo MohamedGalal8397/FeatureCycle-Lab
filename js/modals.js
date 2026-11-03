@@ -152,12 +152,12 @@ function executeConfirmedAction() {
 let contextMenuTarget = null;
 let contextMenuType   = null;
 
-function showContextMenu(event, entryId, tabId, isBugEntry) {
+function showContextMenu(event, entryId, tabId, isBugEntry, bugId) {
   event.preventDefault();
   event.stopPropagation();
 
-  contextMenuTarget = entryId || tabId;
-  contextMenuType   = isBugEntry ? 'bugEntry' : (tabId ? 'tab' : 'entry');
+  contextMenuTarget = bugId || entryId || tabId;
+  contextMenuType   = bugId ? 'bug' : (isBugEntry ? 'bugEntry' : (tabId ? 'tab' : 'entry'));
 
   const menu = document.getElementById('contextMenu');
   if (!menu) return;
@@ -165,14 +165,20 @@ function showContextMenu(event, entryId, tabId, isBugEntry) {
   const isSolvedBug = isBugEntry && state.solvedBugEntries.find(b => b.id === contextMenuTarget);
   const ctxSolve    = document.getElementById('ctxSolve');
   const ctxDivider  = document.getElementById('ctxDivider');
+  const ctxRename   = document.getElementById('ctxRename');
+  const ctxEdit     = document.getElementById('ctxEdit');
 
-  if (isBugEntry) {
+  if (isBugEntry || bugId) {
     ctxSolve.style.display   = '';
     ctxDivider.style.display = '';
     ctxSolve.textContent     = isSolvedBug ? '↶ Reopen Bug' : '✓ Mark as Solved';
+    ctxRename.style.display  = 'none';
+    ctxEdit.style.display    = '';
   } else {
     ctxSolve.style.display   = 'none';
     ctxDivider.style.display = 'none';
+    ctxRename.style.display  = '';
+    ctxEdit.style.display    = 'none';
   }
 
   menu.style.display = '';
@@ -204,6 +210,12 @@ function contextMenuRename() {
   renameTarget = contextMenuTarget;
   renameType   = contextMenuType;
   openRenameDialog();
+}
+
+function contextMenuEdit() {
+  hideContextMenu();
+  const bugId = contextMenuTarget;
+  openBugEditModal(bugId);
 }
 
 function contextMenuSolve() {
@@ -414,19 +426,94 @@ function importJsonData(jsonData) {
   updateEditModeUI();
 }
 
-// ─── BUG CREATE MODAL ─────────────────
+// ─── BUG CREATE/EDIT MODAL ─────────────────
 function openBugCreateModal() {
-  document.getElementById('bugCreateModal').style.display = '';
+  openBugModal();
+}
+
+function openBugEditModal(bugId) {
+  openBugModal(bugId);
+}
+
+function openBugModal(bugId = null) {
+  const modal = document.getElementById('bugCreateModal');
+  const title = document.getElementById('bugCreateModal').querySelector('.modal-title');
+  const button = document.getElementById('bugCreateModal').querySelector('.btn-modal-confirm');
+
+  if (bugId) {
+    // Edit mode
+    const entry = activeEntry();
+    const bug = entry.bugs.find(b => b.id === bugId);
+    if (!bug) return;
+
+    title.textContent = 'EDIT BUG';
+    button.textContent = 'UPDATE BUG';
+    button.onclick = () => updateBugEntry(bugId);
+
+    // Pre-fill fields
+    document.getElementById('bugTitle').value = bug.title;
+    document.getElementById('bugDescription').value = bug.description;
+    document.getElementById('bugSeverity').value = bug.severity || 'medium';
+    if (bug.mergeRequest) {
+      document.getElementById('bugMRRepo').value = bug.mergeRequest.repo || '';
+      document.getElementById('bugMRLink').value = bug.mergeRequest.link || '';
+      document.getElementById('bugMRTitle').value = bug.mergeRequest.title || '';
+      document.getElementById('bugMRStatus').value = bug.mergeRequest.status || 'open';
+      toggleBugMRSection(); // show the section
+    } else {
+      document.getElementById('bugMRRepo').value = '';
+      document.getElementById('bugMRLink').value = '';
+      document.getElementById('bugMRTitle').value = '';
+      document.getElementById('bugMRStatus').value = 'open';
+    }
+  } else {
+    // Create mode
+    title.textContent = 'CREATE BUG';
+    button.textContent = 'CREATE BUG';
+    button.onclick = createBugEntry;
+
+    // Clear fields
+    ['bugTitle', 'bugDescription', 'bugMRRepo', 'bugMRLink', 'bugMRTitle'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('bugSeverity').value = 'medium';
+    document.getElementById('bugMRStatus').value = 'open';
+  }
+
+  modal.style.display = '';
   setTimeout(() => initAutoExpandTextareas(), 0);
   document.getElementById('bugTitle').focus();
 }
 
 function closeBugCreateModal() {
   document.getElementById('bugCreateModal').style.display = 'none';
-  ['bugTitle', 'bugDescription', 'bugMRRepo', 'bugMRLink'].forEach(id => {
+  // Reset to create mode
+  const title = document.getElementById('bugCreateModal').querySelector('.modal-title');
+  const button = document.getElementById('bugCreateModal').querySelector('.btn-modal-confirm');
+  title.textContent = 'CREATE BUG';
+  button.textContent = 'CREATE BUG';
+  button.onclick = createBugEntry;
+
+  ['bugTitle', 'bugDescription', 'bugMRRepo', 'bugMRLink', 'bugMRTitle'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('bugSeverity').value = 'medium';
+  document.getElementById('bugMRStatus').value = 'open';
+  // Hide MR section
+  document.getElementById('bugMRSection').style.display = 'none';
+  document.getElementById('bugMRToggle').innerHTML = '<span style="font-size:11px">+</span> Link a Merge Request <span style="color:var(--text-dim);font-size:10px">(optional)</span>';
+}
+
+function toggleBugMRSection() {
+  const section = document.getElementById('bugMRSection');
+  const toggleBtn = document.getElementById('bugMRToggle');
+  if (section.style.display === 'none' || !section.style.display) {
+    section.style.display = '';
+    toggleBtn.innerHTML = '<span style="font-size:11px">-</span> Link a Merge Request <span style="color:var(--text-dim);font-size:10px">(optional)</span>';
+  } else {
+    section.style.display = 'none';
+    toggleBtn.innerHTML = '<span style="font-size:11px">+</span> Link a Merge Request <span style="color:var(--text-dim);font-size:10px">(optional)</span>';
+  }
 }
 
 // ─── BUG DETAIL MODAL ─────────────────

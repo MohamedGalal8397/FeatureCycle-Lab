@@ -169,6 +169,8 @@ function createBugEntry() {
   const severity    = document.getElementById('bugSeverity').value;
   const mrRepo      = document.getElementById('bugMRRepo').value.trim();
   const mrLink      = document.getElementById('bugMRLink').value.trim();
+  const mrTitle     = document.getElementById('bugMRTitle').value.trim();
+  const mrStatus    = document.getElementById('bugMRStatus').value;
 
   if (!title)       { showToast('Bug title is required', true); return; }
   if (!description) { showToast('Bug description is required', true); return; }
@@ -188,8 +190,8 @@ function createBugEntry() {
   };
 
   if (mrRepo || mrLink) {
-    bug.mergeRequest = { repo: mrRepo || 'Unknown Repo', link: mrLink || '' };
-    _addToCentralMRs({ repo: mrRepo || 'Unknown Repo', link: mrLink || '', title, source: 'bug', bugId: bug.id, entryId: entry.id });
+    bug.mergeRequest = { repo: mrRepo || 'Unknown Repo', link: mrLink || '', title: mrTitle || '', status: mrStatus || 'open' };
+    _addToCentralMRs({ repo: mrRepo || 'Unknown Repo', link: mrLink || '', title: mrTitle || title, status: mrStatus, source: 'bug', bugId: bug.id, entryId: entry.id });
   }
 
   entry.bugs.push(bug);
@@ -198,6 +200,42 @@ function createBugEntry() {
   autosaveLocal();
   markDirty();
   showToast('✓ Bug created');
+}
+
+function updateBugEntry(bugId) {
+  const title       = document.getElementById('bugTitle').value.trim();
+  const description = document.getElementById('bugDescription').value.trim();
+  const severity    = document.getElementById('bugSeverity').value;
+  const mrRepo      = document.getElementById('bugMRRepo').value.trim();
+  const mrLink      = document.getElementById('bugMRLink').value.trim();
+  const mrTitle     = document.getElementById('bugMRTitle').value.trim();
+  const mrStatus    = document.getElementById('bugMRStatus').value;
+
+  if (!title)       { showToast('Bug title is required', true); return; }
+  if (!description) { showToast('Bug description is required', true); return; }
+
+  const entry = activeEntry();
+  if (!entry?.bugs) { showToast('Bug not found', true); return; }
+
+  const bug = entry.bugs.find(b => b.id === bugId);
+  if (!bug) { showToast('Bug not found', true); return; }
+
+  bug.title = title;
+  bug.description = description;
+  bug.severity = severity;
+
+  if (mrRepo || mrLink) {
+    bug.mergeRequest = { repo: mrRepo || 'Unknown Repo', link: mrLink || '', title: mrTitle || '', status: mrStatus || 'open' };
+    _addToCentralMRs({ repo: mrRepo || 'Unknown Repo', link: mrLink || '', title: mrTitle || title, status: mrStatus, source: 'bug', bugId: bug.id, entryId: entry.id });
+  } else {
+    bug.mergeRequest = null;
+  }
+
+  closeBugCreateModal();
+  renderDetailPanel();
+  autosaveLocal();
+  markDirty();
+  showToast('✓ Bug updated');
 }
 
 // ─── CREATE MERGE REQUEST ─────────────
